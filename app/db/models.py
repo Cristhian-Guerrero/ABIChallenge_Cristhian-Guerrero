@@ -5,12 +5,11 @@ from app.db.database import Base
 
 class Prediction(Base):
     """
-    Database model for storing predictions.
+    SQLAlchemy model for storing prediction results in the database.
     """
-
-    __tablename__ = 'predictions'
+    __tablename__ = "predictions"
 
     id = Column(Integer, primary_key=True, index=True)
-    frequency = Column(Float)
-    monetary_value = Column(Float)
-    cluster = Column(Integer)
+    frequency = Column(Float, nullable=False)
+    monetary_value = Column(Float, nullable=False)
+    cluster = Column(Integer, nullable=False)
