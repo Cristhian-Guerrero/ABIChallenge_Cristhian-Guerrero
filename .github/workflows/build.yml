@@ -38,6 +38,10 @@ jobs:
       run: |
         pip install -r requirements.txt
 
+    # Establecer PYTHONPATH para que pytest pueda encontrar los módulos
+    - name: Set PYTHONPATH
+      run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
     - name: Run tests
       env:
         DATABASE_URL: postgresql://user:password@localhost:5432/predictions_db

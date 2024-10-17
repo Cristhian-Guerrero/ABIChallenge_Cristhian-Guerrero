@@ -1,16 +1,15 @@
-import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+import os
 
-# Revisar si estamos en el entorno de test
-TESTING = os.getenv('TESTING', 'False') == 'True'
+# Retrieve database URL from environment variable
+DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://user:password@localhost:5432/predictions_db')
 
-if TESTING:
-    DATABASE_URL = 'sqlite:///./test.db'
-else:
-    DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://user:password@db:5432/predictions_db')
+# Create the SQLAlchemy engine
+engine = create_engine(DATABASE_URL)
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if TESTING else {})
-
+# Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for declarative class definitions
 Base = declarative_base()
