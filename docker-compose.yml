@@ -6,12 +6,12 @@ services:
     container_name: mi_aplicacion
     ports:
       - "8000:8000"
-    depends_on:
-      - db
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/predictions_db
     volumes:
       - .:/app
+    depends_on:
+      - db
 
   db:
     image: postgres:15

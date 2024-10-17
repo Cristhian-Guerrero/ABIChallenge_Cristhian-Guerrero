@@ -1,9 +1,29 @@
-# tests/test_predict.py
-
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from app.main import app
+from app.db.database import Base, DATABASE_URL
 
+# Configurar cliente de pruebas
 client = TestClient(app)
+
+# Crear motor y sesión para la base de datos
+engine = create_engine(DATABASE_URL)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Crear tablas antes de realizar las pruebas
+Base.metadata.create_all(bind=engine)
+
+# Iniciar sesión y rollback después de cada test
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.rollback()  # Hacemos rollback para no afectar la base real
+        db.close()
+
+app.dependency_overrides['get_db'] = override_get_db
 
 def test_predict_single():
     response = client.post(

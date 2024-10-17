@@ -1,5 +1,3 @@
-# app/routers/predict.py
-
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import List
@@ -46,7 +44,7 @@ def predict(data: List[InputData], db: SessionLocal = Depends(get_db)):
     """
     try:
         # Convert input data to DataFrame
-        df = pd.DataFrame([item.dict() for item in data])
+        df = pd.DataFrame([item.model_dump() for item in data])
         logger.info(f"Received data: {df}")
 
         # Make predictions
@@ -55,8 +53,8 @@ def predict(data: List[InputData], db: SessionLocal = Depends(get_db)):
         # Store predictions in the database
         for idx, cluster in enumerate(clusters):
             prediction = Prediction(
-                frequency=df.iloc[idx]['Frequency'],
-                monetary_value=df.iloc[idx]['MonetaryValue'],
+                frequency=float(df.iloc[idx]['Frequency']),  # Convertir np.float64 a float
+                monetary_value=float(df.iloc[idx]['MonetaryValue']),  # Convertir np.float64 a float
                 cluster=int(cluster)
             )
             db.add(prediction)
