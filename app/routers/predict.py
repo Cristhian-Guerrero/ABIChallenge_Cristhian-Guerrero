@@ -1,6 +1,6 @@
 # app/routers/predict.py
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import List
 import pandas as pd
@@ -22,24 +22,34 @@ class InputData(BaseModel):
     Frequency: float
     MonetaryValue: float
 
-@router.post('/predict')
-def predict(data: List[InputData]):
+def get_db():
     """
-    Endpoint to predict the cluster(s) for one or multiple clients and store predictions in the database.
+    Dependency to get the database session.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post('/predict')
+def predict(data: List[InputData], db: SessionLocal = Depends(get_db)):
+    """
+    Endpoint to predict clusters for input data and store predictions in the database.
 
     Args:
-        data (List[InputData]): A list of input data instances.
+        data (List[InputData]): List of input data instances.
+        db (SessionLocal): Database session.
 
     Returns:
-        dict: A dictionary containing the predicted cluster(s).
+        dict: Dictionary containing the predicted clusters.
     """
-    session = SessionLocal()
     try:
-        # Convert the list of InputData to a DataFrame
-        df = pd.DataFrame([item.model_dump() for item in data])
+        # Convert input data to DataFrame
+        df = pd.DataFrame([item.dict() for item in data])
         logger.info(f"Received data: {df}")
 
-        # Use the Predictor instance to make predictions
+        # Make predictions
         clusters = predictor.predict(df)
 
         # Store predictions in the database
@@ -49,14 +59,11 @@ def predict(data: List[InputData]):
                 monetary_value=df.iloc[idx]['MonetaryValue'],
                 cluster=int(cluster)
             )
-            session.add(prediction)
-        session.commit()
+            db.add(prediction)
+        db.commit()
 
-        # Return the predictions as a list
+        # Return predictions
         return {'clusters': clusters.tolist()}
     except Exception as e:
-        session.rollback()
         logger.error(f"Prediction error: {e}")
         return {'error': str(e)}
-    finally:
-        session.close()

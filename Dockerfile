@@ -12,14 +12,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application files
-COPY app/ ./app/
-COPY models/ ./models/
-COPY tests/ ./tests/
-COPY rfm_clusters.csv .
-COPY predictions.db .
-
-# Run the tests to ensure everything works
-RUN pytest tests/
+COPY . .
 
 # Expose port for FastAPI
 EXPOSE 8000
